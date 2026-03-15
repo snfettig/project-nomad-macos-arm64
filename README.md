@@ -16,17 +16,31 @@
 
 Project N.O.M.A.D. is a self-contained, offline-first knowledge and education server packed with critical tools, knowledge, and AI to keep you informed and empowered—anytime, anywhere.
 
-## Installation & Quickstart
-Project N.O.M.A.D. can be installed on any Debian-based operating system (we recommend Ubuntu). Installation is completely terminal-based, and all tools and resources are designed to be accessed through the browser, so there's no need for a desktop environment if you'd rather setup N.O.M.A.D. as a "server" and access it through other clients.
+## Installation & Quickstart (macOS)
 
-*Note: sudo/root privileges are required to run the install script*
+This fork is designed for macOS with Apple Silicon. Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/) and [Ollama](https://ollama.com/download) installed natively for Metal GPU acceleration.
 
 #### Quick Install
 ```bash
-sudo apt-get update && sudo apt-get install -y curl && curl -fsSL https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/install_nomad.sh -o install_nomad.sh && sudo bash install_nomad.sh
+# Install dependencies
+brew install --cask docker
+brew install ollama gh
+
+# Clone this repo
+gh repo clone snfettig/project-nomad-macos-arm64
+cd project-nomad-macos-arm64
+
+# Start Ollama (if not already running)
+ollama serve &
+
+# Run the macOS install script
+bash install/install_nomad_macos.sh
 ```
 
-Project N.O.M.A.D. is now installed on your device! Open a browser and navigate to `http://localhost:8080` (or `http://DEVICE_IP:8080`) to start exploring!
+Project N.O.M.A.D. is now installed on your Mac! Open a browser and navigate to `http://localhost:8080` to start exploring!
+
+#### Linux Install (upstream)
+For Debian/Ubuntu on x86_64, see the [upstream project](https://github.com/Crosstalk-Solutions/project-nomad) for the original install instructions.
 
 ## How It Works
 N.O.M.A.D. is a management UI ("Command Center") and API that orchestrates a collection of containerized tools and resources via [Docker](https://www.docker.com/). It handles installation, configuration, and updates for everything — so you don't have to.
@@ -56,33 +70,30 @@ N.O.M.A.D. also includes built-in tools like a Wikipedia content selector, ZIM l
 | System Benchmark | Built-in | Hardware scoring, Builder Tags, and community leaderboard |
 
 ## Device Requirements
-While many similar offline survival computers are designed to be run on bare-minimum, lightweight hardware, Project N.O.M.A.D. is quite the opposite. To install and run the
-available AI tools, we highly encourage the use of a beefy, GPU-backed device to make the most of your install.
 
-At it's core, however, N.O.M.A.D. is still very lightweight. For a barebones installation of the management application itself, the following minimal specs are required:
+> **This fork** was created to run Project N.O.M.A.D. on **macOS / Apple Silicon (arm64)** with native **Metal GPU acceleration** via Ollama. The upstream project targets Debian/Ubuntu on x86_64 with NVIDIA GPUs. This fork adds macOS-specific install scripts, multi-arch Docker image builds, and native Ollama integration so that Apple Silicon Macs can use their Metal GPU for local AI inference instead of running Ollama inside Docker (which has no GPU passthrough on macOS).
 
-*Note: Project N.O.M.A.D. is not sponsored by any hardware manufacturer and is designed to be as hardware-agnostic as possible. The harware listed below is for example/comparison use only*
+At its core, N.O.M.A.D. is still very lightweight. For a barebones installation of the management application itself, the following minimal specs are required:
 
 #### Minimum Specs
-- Processor: 2 GHz dual-core processor or better
-- RAM: 4GB system memory
+- Processor: Apple M1 or later
+- RAM: 8 GB unified memory
 - Storage: At least 5 GB free disk space
-- OS: Debian-based (Ubuntu recommended)
+- OS: macOS 15 (Sequoia) or later
 - Stable internet connection (required during install only)
 
-To run LLM's and other included AI tools:
+To run LLMs and other included AI tools:
 
 #### Optimal Specs
-- Processor: AMD Ryzen 7 or Intel Core i7 or better
-- RAM: 32 GB system memory
-- Graphics: NVIDIA RTX 3060 or AMD equivalent or better (more VRAM = run larger models)
-- Storage: At least 250 GB free disk space (preferably on SSD)
-- OS: Debian-based (Ubuntu recommended)
+- A newer Apple Mac with Apple Silicon (M2 Pro / M3 Pro / M4 or better)
+- RAM: 32 GB unified memory or more (Apple Silicon shares memory between CPU and GPU — more RAM = larger AI models)
+- Storage: At least 250 GB free disk space (SSD standard on all Macs)
+- OS: macOS 26 or later
 - Stable internet connection (required during install only)
 
-**For detailed build recommendations at three price points ($200–$800+), see the [Hardware Guide](https://www.projectnomad.us/hardware).**
+*Tested on a MacBook Pro with M4 Max.*
 
-Again, Project N.O.M.A.D. itself is quite lightweight - it's the tools and resources you choose to install with N.O.M.A.D. that will determine the specs required for your unique deployment
+For the original upstream hardware recommendations (Linux/NVIDIA), see the [Hardware Guide](https://www.projectnomad.us/hardware).
 
 ## About Internet Usage & Privacy
 Project N.O.M.A.D. is designed for offline usage. An internet connection is only required during the initial installation (to download dependencies) and if you (the user) decide to download additional tools and resources at a later time. Otherwise, N.O.M.A.D. does not require an internet connection and has ZERO built-in telemetry.
@@ -141,28 +152,19 @@ Use the format `- **Area**: Description` to stay consistent with existing entrie
 Project N.O.M.A.D. is licensed under the [Apache License 2.0](LICENSE).
 
 ## Helper Scripts
-Once installed, Project N.O.M.A.D. has a few helper scripts should you ever need to troubleshoot issues or perform maintenance that can't be done through the Command Center. All of these scripts are found in Project N.O.M.A.D.'s install directory, `/opt/project-nomad`
-
-###
+Once installed, Project N.O.M.A.D. has a few helper scripts for troubleshooting and maintenance. On macOS, these are located in `~/project-nomad-data/`:
 
 ###### Start Script - Starts all installed project containers
 ```bash
-sudo bash /opt/project-nomad/start_nomad.sh
+bash ~/project-nomad-data/start_nomad.sh
 ```
-###
 
 ###### Stop Script - Stops all installed project containers
 ```bash
-sudo bash /opt/project-nomad/stop_nomad.sh
-```
-###
-
-###### Update Script - Attempts to pull the latest images for the Command Center and its dependencies (i.e. mysql) and recreate the containers. Note: this *only* updates the Command Center containers. It does not update the installable application containers - that should be done through the Command Center UI
-```bash
-sudo bash /opt/project-nomad/update_nomad.sh
+bash ~/project-nomad-data/stop_nomad.sh
 ```
 
-###### Uninstall Script - Need to start fresh? Use the uninstall script to make your life easy. Note: this cannot be undone!
+###### Update Script - Rebuilds the admin image from source and recreates containers
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Crosstalk-Solutions/project-nomad/refs/heads/main/install/uninstall_nomad.sh -o uninstall_nomad.sh && sudo bash uninstall_nomad.sh
+bash ~/project-nomad-data/update_nomad.sh
 ```
