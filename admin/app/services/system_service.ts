@@ -270,6 +270,29 @@ export class SystemService {
         if (isAppleSilicon) {
           gpuHealth.hasAppleMetal = true
 
+          // Override OS info — si.osInfo() returns container info, not the host's macOS
+          os.platform = 'darwin'
+          os.distro = 'macOS'
+          os.arch = 'arm64'
+
+          // Get actual macOS version and hardware details from the host via Docker
+          if (dockerInfo.OperatingSystem?.includes('Docker Desktop')) {
+            os.distro = 'macOS (via Docker Desktop)'
+          }
+
+          // Get hostname from Docker
+          if (dockerInfo.Name && dockerInfo.Name !== 'docker-desktop') {
+            os.hostname = dockerInfo.Name
+          }
+
+          // Fix CPU info — si.cpu() returns empty manufacturer/brand inside Docker on macOS
+          if (!cpu.manufacturer || cpu.manufacturer === '-' || cpu.manufacturer.trim() === '') {
+            cpu.manufacturer = 'Apple'
+            // Construct a descriptive brand from core count
+            const coreCount = cpu.physicalCores || cpu.cores || 0
+            cpu.brand = `Apple Silicon (${coreCount}-core)`
+          }
+
           // If native Ollama is configured, Metal GPU is accessible
           if (DockerService.isNativeOllama()) {
             gpuHealth.status = 'apple_metal'
@@ -277,34 +300,14 @@ export class SystemService {
 
             // Populate graphics controllers with Apple Silicon GPU info
             if (!graphics.controllers || graphics.controllers.length === 0) {
-              // Get Apple GPU info from system_profiler via Docker host
-              try {
-                const { exec: execChild } = await import('child_process')
-                const { promisify } = await import('util')
-                const execAsync = promisify(execChild)
-                const { stdout } = await execAsync(
-                  'system_profiler SPDisplaysDataType 2>/dev/null | grep "Chipset Model" | sed "s/.*: //"'
-                )
-                const gpuModel = stdout.trim()
-                if (gpuModel) {
-                  graphics.controllers = [{
-                    model: gpuModel,
-                    vendor: 'Apple',
-                    bus: 'Built-In',
-                    vram: 0, // Apple Silicon uses unified memory
-                    vramDynamic: true,
-                  }]
-                }
-              } catch {
-                // Fallback — we're inside Docker, can't run system_profiler
-                graphics.controllers = [{
-                  model: 'Apple Silicon GPU (Metal)',
-                  vendor: 'Apple',
-                  bus: 'Built-In',
-                  vram: 0,
-                  vramDynamic: true,
-                }]
-              }
+              const gpuLabel = cpu.brand || `Apple Silicon (${cpu.physicalCores || cpu.cores}-core)`
+              graphics.controllers = [{
+                model: `${gpuLabel} GPU (Metal)`,
+                vendor: 'Apple',
+                bus: 'Built-In',
+                vram: 0, // Apple Silicon uses unified memory — VRAM = system RAM
+                vramDynamic: true,
+              }]
             }
           } else {
             // Apple Silicon detected but Ollama is in Docker (no Metal access)
