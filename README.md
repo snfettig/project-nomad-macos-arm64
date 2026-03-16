@@ -91,7 +91,7 @@ To run LLMs and other included AI tools:
 - OS: macOS 26 or later
 - Stable internet connection (required during install only)
 
-*Tested on a MacBook Pro with M4 Max.*
+*Tested on a MacBook Pro M1 Max with 64 GB RAM.*
 
 For the original upstream hardware recommendations (Linux/NVIDIA), see the [Hardware Guide](https://www.projectnomad.us/hardware).
 
