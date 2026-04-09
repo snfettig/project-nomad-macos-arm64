@@ -24,7 +24,7 @@ export default class ServiceSeeder extends BaseSeeder {
       icon: 'IconBooks',
       container_image: 'ghcr.io/kiwix/kiwix-serve:3.8.1',
       source_repo: 'https://github.com/kiwix/kiwix-tools',
-      container_command: '*.zim --address=all',
+      container_command: '--library /data/kiwix-library.xml --address=all',
       container_config: JSON.stringify({
         HostConfig: {
           RestartPolicy: { Name: 'unless-stopped' },
